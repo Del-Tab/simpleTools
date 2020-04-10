@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+"""
+basic aes128cbc encode/decode tool
+
+This is a rapidly coded generified version of this stuff from Ange Albertini  https://github.com/indrora/corkami/blob/master/src/angecryption/rmll/angecryption/crypt.py
+
+Regards,
+Alban Daumer (https://github.com/DelTa-B)
+"""
+
+import sys
+from Crypto.Cipher import AES
+
+def usage():
+	print("Usage: %s infile outfile key iv mode" % sys.argv[0])
+	print("key is cleartext, iv is hexcode")
+	print("mode is e -> encrypt, d->decrypt")
+	exit(0)
+
+if (len(sys.argv) != 6):
+	print("wrong number of args")
+	usage()
+
+
+
+infile = sys.argv[1]
+outfile = sys.argv[2]
+key = sys.argv[3]
+iv = bytes.fromhex(sys.argv[4])
+mode = sys.argv[5]
+if (mode != 'e' and mode != 'd'):
+	print("bad mode\n")
+	usage()
+
+AES = AES.new(key, AES.MODE_CBC, iv)
+
+with open(infile, "rb") as f:
+	d = f.read()
+
+
+if (mode == 'e'):
+	d = AES.encrypt(d)
+else:
+	d = AES.decrypt(d)
+
+with open(outfile, "wb") as f:
+	f.write(d)
