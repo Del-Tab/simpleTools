@@ -16,8 +16,8 @@ from Crypto.Cipher import AES
 
 def usage():
 	print("Usage: %s infile outfile key iv mode" % sys.argv[0])
-	print("key is cleartext, iv is hexcode")
-	print("mode is e -> encrypt, d->decrypt")
+	print("\tkey is cleartext, iv is hexcode")
+	print("\tmode is e -> encrypt, d->decrypt")
 	exit(0)
 
 if (len(sys.argv) != 6):
@@ -36,22 +36,27 @@ if (mode != 'e' and mode != 'd'):
 	print("bad mode\n")
 	usage()
 
-print ("infile=" + infile);
-print ("outfile=" + outfile);
-print ("key="+ key)
-print ("iv="+':'.join("{:02x}".format(c) for c in (iv)))
-print ("mode="+ mode);
+print ("\tinfile={}".format(infile));
+print ("\toutfile={}".format(outfile));
+print ("\tkey={}".format(key))
+print ("\tiv="+':'.join("{:02x}".format(c) for c in (iv)))
+print ("\tmode={}".format(mode));
 
 AES = AES.new(key, AES.MODE_CBC, iv)
 
+print("opening {}".format(infile))
 with open(infile, "rb") as f:
 	d = f.read()
 
 
 if (mode == 'e'):
+	print("\tAES ciphering ...", end="", flush=True)
 	d = AES.encrypt(d)
 else:
+	print("\tAES deciphering ...", end="", flush=True)
 	d = AES.decrypt(d)
+print("done")
 
+print("writing to {}".format(infile))
 with open(outfile, "wb") as f:
 	f.write(d)
