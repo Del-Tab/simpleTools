@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+
+
+"""
+basic png chunk fix
+
+
+
+Regards,
+Alban Daumer (https://github.com/DelTa-B)
+"""
+
+import sys
+import binascii
+from Crypto.Cipher import AES
+
+
+def usage():
+	print("Usage: %s infile outfile mode" % sys.argv[0])
+	print("\tmode: 0 -> display CRC")
+	print("\t      1 -> Fix chunk whose type starts with capital letter")
+	print("\t      2 -> Fix all chunks")
+	exit(0)
+
+if (len(sys.argv) != 4):
+	print("wrong number of args")
+	usage()
+
+mode = sys.argv[3]
+
+if (mode != '0' and mode != '1' and mode != '2'):
+	print("wrong mode")
+	usage()
+
+
+infile = sys.argv[1]
+outfile = sys.argv[2]
+print ("\tinfile={}".format(infile))
+print ("\toutfile={}".format(outfile))
+
+inf = open(infile, "rb")
+outf = open(outfile, "wb")
+
+
+png_signature = inf.read(8)
+print ("signature is {}".format(png_signature))
+
+outf.write(png_signature)
+
+finished = False
+while (not finished) :
+	chunk_size = inf.read(4)
+	chunk_size_i = int.from_bytes(chunk_size, "big")
+	chunk_type = inf.read(4)
+	data = inf.read(chunk_size_i)
+	actual_crc=inf.read(4)
+	actual_crc_display = ':'.join("{:02x}".format(c) for c in (actual_crc))
+	expected_crc = binascii.crc32(chunk_type + data).to_bytes(4, byteorder='big')
+	expected_crc_display = ':'.join("{:02x}".format(c) for c in (expected_crc))
+	
+	print("found a chunk whose size is {}".format(chunk_size_i))
+	print("\tand whose name is {}".format(chunk_type))
+	print("\texpected crc is {}".format(expected_crc_display))
+	print("\tactual crc is   {}".format(actual_crc_display))
+	if actual_crc != expected_crc:
+		print("--CRC WAS WRONG--")
+	outf.write(chunk_size)
+	outf.write(chunk_type)
+	outf.write(data)
+	if mode == '0' or actual_crc == expected_crc:
+		print("\tkeeping actual crc")
+		outf.write(actual_crc)
+	elif mode == '2':
+		print("\tfixing crc")
+		outf.write(expected_crc)
+	elif mode == '1':
+		if chunk_type[0]>=65 and chunk_type[0] <= 90:
+			print("\tfixing crc")
+			outf.write(expected_crc)
+		else:
+			print("\tkeeping actual (WRONG) crc")
+			outf.write(actual_crc)
+	if chunk_type == b'IEND':
+		finished = True
+outf.close()
