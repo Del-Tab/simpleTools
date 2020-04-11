@@ -16,8 +16,10 @@ from Crypto.Cipher import AES
 
 def usage():
 	print("Usage: %s infile outfile key iv mode" % sys.argv[0])
-	print("\tkey is cleartext, iv is hexcode")
+	print("\tkey is cleartext, length = 16, 24, 32 characters")
+	print("\tiv is hexcode, length = 32 hex characters")
 	print("\tmode is e -> encrypt, d->decrypt")
+	print("\n\tThe key is NOT derivated")
 	exit(0)
 
 if (len(sys.argv) != 6):
