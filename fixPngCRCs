@@ -3,11 +3,17 @@
 
 """
 basic png chunk fix
-
-
+will fix the CRC if you manually changed some data in the chunk. 
+Don't use the same file as input and output as it has not been tested 
+	and it WILL have unexpected behavior.
+More documentation on http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
+	especially session 3. File Structure
 
 Regards,
 Alban Daumer (https://github.com/DelTa-B)
+
+Note to myself: Ne pas oublier de mettre à jour ces writeUps si besoin
+	- AngeCryption (Stegano) sur root-me.org 
 """
 
 import sys
@@ -17,9 +23,12 @@ from Crypto.Cipher import AES
 
 def usage():
 	print("Usage: %s infile outfile mode" % sys.argv[0])
-	print("\tmode: 0 -> display CRC")
-	print("\t      1 -> Fix chunk whose type starts with capital letter")
-	print("\t      2 -> Fix all chunks")
+	print("\tmode: 0 -> display CRC errors but don't fix them")
+	print("\t      1 -> Fix only critical chunks (chunk whose type starts with capital letter)")
+	print("\t      2 -> Fix all chunks", end = "\n\n")
+	print("Don't use the same file as input and output, as it would lead to unexpected behavior.")
+	print("If the png file doesn't have a IEND chunk, a harmless error")
+	print("\twill display and outfile will be garbage.");
 	exit(0)
 
 if (len(sys.argv) != 4):
@@ -49,36 +58,42 @@ outf.write(png_signature)
 
 finished = False
 while (not finished) :
+	#reading chunk size
 	chunk_size = inf.read(4)
 	chunk_size_i = int.from_bytes(chunk_size, "big")
+	#reading chunk type identifier
 	chunk_type = inf.read(4)
+	#reading the chunk data
 	data = inf.read(chunk_size_i)
+	#reading the CRC from the file
 	actual_crc=inf.read(4)
 	actual_crc_display = ':'.join("{:02x}".format(c) for c in (actual_crc))
+	#calculating what the CRC should have been, from chunk type and data
 	expected_crc = binascii.crc32(chunk_type + data).to_bytes(4, byteorder='big')
 	expected_crc_display = ':'.join("{:02x}".format(c) for c in (expected_crc))
 	
-	print("found a chunk whose size is {}".format(chunk_size_i))
-	print("\tand whose name is {}".format(chunk_type))
-	print("\texpected crc is {}".format(expected_crc_display))
-	print("\tactual crc is   {}".format(actual_crc_display))
+	print("Found a chunk whose type is {} and whose size is {}".format(chunk_type, chunk_size_i))
+	print("\tActual crc is   {} ...".format(actual_crc_display), end ="")
 	if actual_crc != expected_crc:
-		print("--CRC WAS WRONG--")
+		print("\n----CRC IS WRONG----")
+		print("\tExpected crc is {}".format(expected_crc_display))
+	else:
+		print("\tCRC is OK")
 	outf.write(chunk_size)
 	outf.write(chunk_type)
 	outf.write(data)
 	if mode == '0' or actual_crc == expected_crc:
-		print("\tkeeping actual crc")
+		print("\tKeeping crc")
 		outf.write(actual_crc)
 	elif mode == '2':
-		print("\tfixing crc")
+		print("\tFixing crc")
 		outf.write(expected_crc)
 	elif mode == '1':
-		if chunk_type[0]>=65 and chunk_type[0] <= 90:
-			print("\tfixing crc")
+		if chunk_type[0]>=65 and chunk_type[0] <= 90: # capital ASCII letter
+			print("\tFixing crc")
 			outf.write(expected_crc)
 		else:
-			print("\tkeeping actual (WRONG) crc")
+			print("\tKeeping (WRONG) crc")
 			outf.write(actual_crc)
 	if chunk_type == b'IEND':
 		finished = True

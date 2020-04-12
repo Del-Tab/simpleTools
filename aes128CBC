@@ -8,6 +8,9 @@ This is a rapidly coded generified version of this stuff from Ange Albertini  ht
 
 Regards,
 Alban Daumer (https://github.com/DelTa-B)
+
+Note to myself: Ne pas oublier de mettre à jour ces writeUps si besoin
+	- AngeCryption (Stegano) sur root-me.org
 """
 
 import sys
