@@ -40,10 +40,11 @@ mode = sys.argv[5]
 if (mode != 'e' and mode != 'd'):
 	print("bad mode\n")
 	usage()
+key_display = "%x" % key
 
 print ("\tinfile={}".format(infile));
 print ("\toutfile={}".format(outfile));
-print ("\tkey={}".format(key))
+print ("\tkey={}".format(key_display))
 print ("\tiv="+':'.join("{:02x}".format(c) for c in (iv)))
 print ("\tmode={}".format(mode));
 
