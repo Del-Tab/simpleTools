@@ -18,17 +18,16 @@ Note to myself: Ne pas oublier de mettre à jour ces writeUps si besoin
 
 import sys
 import binascii
-from Crypto.Cipher import AES
-
+import os.path
 
 def usage():
 	print("Usage: %s infile outfile mode" % sys.argv[0])
-	print("\tmode: 0 -> display CRC errors but don't fix them")
+	print("\tmode: 0 -> display CRC errors but don't fix them, but truncate after IEND chunk")
 	print("\t      1 -> Fix only critical chunks (chunk whose type starts with capital letter)")
 	print("\t      2 -> Fix all chunks", end = "\n\n")
-	print("Don't use the same file as input and output, as it would lead to unexpected behavior.")
-	print("If the png file doesn't have a IEND chunk, a harmless error")
-	print("\twill display and outfile will be garbage.");
+	print("The infile must exist and the outfile must NOT exist")
+	print("If the png file doesn't end with a complete chunk, a harmless error")
+	print("\twill display and outfile may be garbage.");
 	exit(0)
 
 if (len(sys.argv) != 4):
@@ -47,9 +46,18 @@ outfile = sys.argv[2]
 print ("\tinfile={}".format(infile))
 print ("\toutfile={}".format(outfile))
 
+if not os.path.exists(infile):
+	print("infile must exist")
+	usage()
+
+if os.path.exists(outfile):
+	print("Outfile must NOT exist")
+	usage()
+
+	
+
 inf = open(infile, "rb")
 outf = open(outfile, "wb")
-
 
 png_signature = inf.read(8)
 print ("signature is {}".format(png_signature))
@@ -60,6 +68,8 @@ finished = False
 while (not finished) :
 	#reading chunk size
 	chunk_size = inf.read(4)
+	if not chunk_size:
+		break
 	chunk_size_i = int.from_bytes(chunk_size, "big")
 	#reading chunk type identifier
 	chunk_type = inf.read(4)
@@ -95,6 +105,6 @@ while (not finished) :
 		else:
 			print("\tKeeping (WRONG) crc")
 			outf.write(actual_crc)
-	if chunk_type == b'IEND':
+	if mode == '0' and chunk_type == b'IEND':
 		finished = True
 outf.close()
