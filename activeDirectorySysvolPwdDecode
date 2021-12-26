@@ -37,7 +37,7 @@ key_display = ':'.join("{:02x}".format(c) for c in (key))
 #uncomment for debug info
 #print ("\tkey={}".format(key_display))
 #print ("\tcpassword={}".format(cpassword))
-AES = AES.new(key, AES.MODE_CBC, "\x00" *16)
+AES = AES.new(key, AES.MODE_CBC, ("\x00" *16).encode("utf8"))
 
 cipher = base64.b64decode(cpassword)
 plain = AES.decrypt(cipher)
