@@ -40,7 +40,7 @@ mode = sys.argv[5]
 if (mode != 'e' and mode != 'd'):
 	print("bad mode\n")
 	usage()
-key_display = "%x" % key
+key_display = "%x" % int(key)
 
 print ("\tinfile={}".format(infile));
 print ("\toutfile={}".format(outfile));
@@ -48,12 +48,11 @@ print ("\tkey={}".format(key_display))
 print ("\tiv="+':'.join("{:02x}".format(c) for c in (iv)))
 print ("\tmode={}".format(mode));
 
-AES = AES.new(key, AES.MODE_CBC, iv)
+AES = AES.new(key.encode("utf-8"), AES.MODE_CBC, iv)
 
 print("opening {}".format(infile))
 with open(infile, "rb") as f:
 	d = f.read()
-
 
 if (mode == 'e'):
 	print("\tAES ciphering ...", end="", flush=True)
@@ -63,6 +62,6 @@ else:
 	d = AES.decrypt(d)
 print("done")
 
-print("writing to {}".format(infile))
+print("writing to {}".format(outfile))
 with open(outfile, "wb") as f:
 	f.write(d)
