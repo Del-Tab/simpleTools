@@ -77,6 +77,11 @@ while (True) :
 	data = inf.read(chunk_size_i)
 	#reading (and ignoring) the CRC from the file
 	actual_crc=inf.read(4)
+	try:
+		chunk_type.decode('ascii')
+	except UnicodeDecodeError:
+		print("bad chunk type {}, is replaced with 'aaaa'".format(chunk_type))
+		chunk_type = 'aaaa'.encode('ascii')
 	if not types or chunk_type in types:
 		print("Found a chunk whose type is {} and whose size is {}".format(chunk_type, chunk_size_i))
 		with open('{}/chunk_{}_{}'.format(outdir,chunk_num, chunk_type.decode("utf-8")), 'wb') as outf:
